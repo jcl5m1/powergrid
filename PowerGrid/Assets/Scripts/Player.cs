@@ -13,18 +13,21 @@ using System;
 using System.Collections.Generic;
 public class Player  : MonoBehaviour, IComparable
 {
-	public int cash;
+	public int cash = 50;
+	private int starterCash = 50;
+	[HideInInspector]
 	public ArrayList powerPlants = new ArrayList();
+	[HideInInspector]
 	public ArrayList cities = new ArrayList();
-	public ArrayList plantObject = new ArrayList();
+	
 	public Color color;
-
-
-	public Player ()
-	{
-		Reset();
+	
+	void Start () {
+		starterCash = cash;
+		foreach (Renderer r in GetComponentsInChildren<Renderer> ())
+			r.material.color = color;
+		Reset ();
 	}
-
 	public int GetOrderScore() {
 		int maxPowerPlantValue = 0;
 		foreach (PowerPlant pp in powerPlants) {
@@ -45,7 +48,7 @@ public class Player  : MonoBehaviour, IComparable
 
 	public void Reset() {
 		powerPlants.Clear ();
-		cash = 50;
+		cash = starterCash;
 		cities.Clear ();
 	}
 
