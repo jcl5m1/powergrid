@@ -15,12 +15,15 @@ public class GameState : MonoBehaviour {
 	
 	private State currentState = State.ComputeTurn;
 	private ArrayList players = null;
+	private ArrayList playerOrderPieces = null;
 	private ArrayList drawDeckPowerPlants = null;
 	private ArrayList inMarketPowerPlants = null;
 		
 	private int marketCount = 8;
 	private int biddableCount = 4;
 	private int gameRound = 1;
+
+	private CityGraph graph;
 
 	private int maxPowerPlants = 3;
 	private int gameEndCityCount = 17;
@@ -37,17 +40,7 @@ public class GameState : MonoBehaviour {
 	private PowerPlantMaterialStore materialStore;
 	
 	public static GameState instance = null;
-//
-//	public static GameState GetInstance()
-//	{
-//		if(instance == null)
-//		{
-//			instance = new GameState();
-//			instance.Start();
-//		}
-//		
-//		return instance;
-//	}
+	private GameObject cityPopupText;
 
 	public Player CurrentPlayer() {
 		return (Player)players [playerTurn];
@@ -59,14 +52,27 @@ public class GameState : MonoBehaviour {
 		instance = this;
 		print ("Initialize game");
 
+		graph = GetComponent<CityGraph> ();
+
 		//setup players
 		players = new ArrayList();
+
+		playerOrderPieces = new ArrayList ();
+
+		playerOrderPieces.Add (GameObject.Find("PlayerOrderPiece1"));
+		playerOrderPieces.Add (GameObject.Find("PlayerOrderPiece2"));
+		playerOrderPieces.Add (GameObject.Find("PlayerOrderPiece3"));
+		playerOrderPieces.Add (GameObject.Find("PlayerOrderPiece4"));
+
 
 		//create objects from GUI setup
 		Player[] p = FindObjectsOfType(typeof(Player)) as Player[];
 		for (int i = 0; i < p.Length; i++) {
-			players .Add (p [i]);
+			players.Add (p [i]);
+			((GameObject)playerOrderPieces[i]).GetComponent<Renderer>().material.color = p[i].color;
 		}
+
+
 		players.Sort ();
 		players.Reverse ();
 
@@ -81,9 +87,9 @@ public class GameState : MonoBehaviour {
 	}
 
 	void Reset() {
-		foreach (Player p in players)
+		foreach (Player p in players) {
 			p.Reset ();
-
+		}
 		inMarketPowerPlants.Clear ();
 		drawDeckPowerPlants.Clear ();
 		InitializePowerPlants ();
@@ -117,6 +123,11 @@ public class GameState : MonoBehaviour {
 		cityCountPayoutTable [20] = 150;
 	}
 
+	public State CurrentState {
+		get {
+			return currentState;
+		}
+	}
 
 
 	void MovePowerPlantCard(int fromPosition, int toPosition) {
@@ -204,9 +215,11 @@ public class GameState : MonoBehaviour {
 		bool advanceState = false;
 		bool advanceTurn = false;
 
+//		graph.DebugDraw ();
 
-		if (Input.GetKeyDown (KeyCode.Space))
+		if (Input.GetKeyDown (KeyCode.Space)) {
 			advanceTurn = true;
+		}
 
 		if (Input.GetKeyDown (KeyCode.R)) {
 			Reset();
@@ -218,11 +231,20 @@ public class GameState : MonoBehaviour {
 		}
 
 
+		if (cityPopupText == null)
+			cityPopupText = GameObject.Find ("CityPopupText");
+		cityPopupText.SetActive (currentState == State.BuildCities);
+
 		switch (currentState) {
 		case  State.ComputeTurn:
 //			print (currentState);
-			players.Sort();
+			players.Sort ();
 			players.Reverse ();
+
+			//set piece colors
+			for (int i = 0; i < players.Count; i++) {
+				((GameObject)playerOrderPieces [i]).GetComponent<Renderer> ().material.color = ((Player)players[i]).color;
+			}
 
 			currentState = State.BuyPlants;
 			playerTurn = 0;
@@ -261,6 +283,8 @@ public class GameState : MonoBehaviour {
 
 			if(advanceState) {
 				currentState = State.BuildCities;
+				RecomputeTravelCosts();
+
 //				print (currentState);
 			}
 		break;
@@ -270,10 +294,14 @@ public class GameState : MonoBehaviour {
 			//click to buy
 			if (advanceTurn) {
 				playerTurn--;
+
 				if(playerTurn == -1) {
 					advanceState = true;
 					playerTurn = 0;
+				} else {
+					RecomputeTravelCosts();
 				}
+
 			}
 			if(advanceState) {
 				currentState = State.Bureaucracy;
@@ -289,16 +317,20 @@ public class GameState : MonoBehaviour {
 			break;
 		}
 
-
 		int index = 0;
-		foreach (Player p in players) {
-			if(index == playerTurn) {
-				p.gameObject.GetComponent<Renderer>().material.color = p.color;
-			} else {
-				p.gameObject.GetComponent<Renderer>().material.color = Color.gray;
 
+		for (int i = 0; i < players.Count; i++) {
+			GameObject playerOrderPiece = ((GameObject)playerOrderPieces [i]);
+			Vector3 pos = playerOrderPiece.transform.position;
+			Quaternion rot = Quaternion.identity;
+			if(i == playerTurn) {
+				pos.y = 0.1f + 0.1f*(1.0f + Mathf.Sin (5*UnityEngine.Time.realtimeSinceStartup));
+				rot = Quaternion.Euler (0, 120 * UnityEngine.Time.realtimeSinceStartup, 0);
+			} else {
+				pos.y = 0.1f;
 			}
-			index++;
+			playerOrderPiece.transform.position = pos;
+			playerOrderPiece.transform.rotation = rot;
 		}
 
 		foreach (PowerPlant pp in drawDeckPowerPlants) {
@@ -312,6 +344,10 @@ public class GameState : MonoBehaviour {
 				pp.gameObject.GetComponent<Renderer>().material.color = Color.blue;
 			index++;
 		}
+
+	}
+	public void RecomputeTravelCosts() {
+		graph.RecomputeCityTravelCosts(gameStep, CurrentPlayer());
 
 	}
 

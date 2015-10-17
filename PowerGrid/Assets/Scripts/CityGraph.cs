@@ -10,7 +10,6 @@ public class CityGraph : MonoBehaviour {
 	// Use this for initialization
 	void Start () {
 		InitializeCities ();
-
 	}
 
 	void InitializeCities() {
@@ -74,14 +73,18 @@ public class CityGraph : MonoBehaviour {
 		AddEdge ("Chicago", "Duluth", 12);
 		AddEdge ("Chicago", "Minneapolis", 8);
 		AddEdge ("Chicago", "Omaha", 13);
-		
+		AddEdge ("Chicago", "StLouis", 10);
+
 		AddEdge ("Duluth", "Detroit", 15);
 		AddEdge ("Duluth", "Fargo", 6);
 		AddEdge ("Duluth", "Minneapolis", 5);
 		AddEdge ("Minneapolis", "Fargo", 6);
 		AddEdge ("Billings", "Fargo", 17);
 		AddEdge ("Billings", "Minneapolis", 18);
-		
+
+		AddEdge ("Omaha", "Minneapolis", 8);
+		AddEdge ("SaltLakeCity", "Denver", 21);
+
 		AddEdge ("Cheyenne", "Minneapolis", 18);
 		AddEdge ("Cheyenne", "Omaha", 14);
 		AddEdge ("Cheyenne", "Denver", 0);
@@ -149,73 +152,70 @@ public class CityGraph : MonoBehaviour {
 		cities[index2].edges.Add (e);
 	}
 
-	public int ComputeCityCost(City c, int step, Player player) {
+	public void RecomputeCityTravelCosts(int step, Player player) {
 				
 		//if player has no cities, just current step value of city
 		//if city is not available at step, return failure
 		//if player has city, it is the cheapest combined edge + step value of city
 
-		int cityCost = c.Cost (step);
+		//clear cities
+		foreach(City c in cities)
+			c.effectiveTravelCost = -1;
 
-		//occupied or already owned at step 
-		if (cityCost == -1)
-			return -1;
+		//if player has no cities, they are at face value
+		if (player.cities.Count == 0) {
+			foreach(City c in cities)
+				c.effectiveTravelCost = 0;
+			return;
+		}
 
-		if (c.PlayerIsOwner (player))
-			return -1;
+		//player has cities, so let's start with these cities.
+		//and cover the graph
 
-		//player has no current cities, they can buy it at sticker price.
-		if (player.cities.Count == 0)
-			return cityCost;
+		ArrayList queuedCities = new ArrayList ();
+		foreach (City c in player.cities) {
+			c.effectiveTravelCost = 0;
+			queuedCities.Add(c);
+		}
 
+		//for each city in the queue
+		//look at the edges, and see if we can get to the neighorbing city cheaper
+		//if so, adjust the neighboring city's effective cost
+		//if the city is occupied, we can add that city to the queue.
+		while (queuedCities.Count > 0) {
+			City c = (City)queuedCities[0];
+			queuedCities.RemoveAt(0);
 
-		//if player has cities, 
-		//we do graph search and find cheapest combinedEdge 
-		//from target city to player owned cities
-
-		//must be connected to a player owned city or a connected occupied city?
-
-		ArrayList combinedEdges = new ArrayList();
-		ArrayList queuedCity = new ArrayList ();
-		queuedCity.Add (c);
-
-		while(queuedCity.Count > 0){
-			City cty = (City)queuedCity[0];
-			queuedCity.RemoveAt(0);
-			cty.beenVisited = true;
-			foreach (Edge e in cty.edges) {
+			foreach (Edge e in c.edges) {
 				City otherCity;
-				if(e.start == cty)
+				if(e.start == c)
 					otherCity = e.end;
 				else
 					otherCity = e.start;
 
-				if(otherCity.beenVisited)
-					continue;
-				if(otherCity.Occupancy() == 0)
-					continue;
-				if(otherCity.PlayerIsOwner(player))
-				   e.stopSearch = true;
-				else
-					queuedCity.Add(otherCity);
+				if((otherCity.effectiveTravelCost == -1)||(otherCity.effectiveTravelCost > (e.cost + c.effectiveTravelCost))){
 
-				combinedEdges.Add (e);
+					print ("other city cost: " + otherCity.effectiveTravelCost + " new: " + e.cost + " "  +  c.effectiveTravelCost);
+					otherCity.effectiveTravelCost = e.cost + c.effectiveTravelCost;
+					if(otherCity.Occupancy() > 0) {//depends on what the level city being bought?
+						//only cascade search if other city is occupied, then we can pass through
+						queuedCities.Add(otherCity);
+					}
+				}
 			}
 		}
+	}
 
-		int minCost = int.MaxValue;
-		foreach(Edge e in combinedEdges) {
-			if(e.cost < minCost)
-				minCost = e.cost;
+	public void DebugDraw() {
+
+		foreach(Edge e in edges) {
+			Debug.DrawLine(e.start.gameObject.transform.position, e.end.gameObject.transform.position,Color.red);
 		}
-
-		print ("city cost function is incomplete");
-		return minCost;
 	}
 
 	public void ResetSearchFlags() {
 		foreach(City c in cities)
-			c.beenVisited = false;
+			c.effectiveTravelCost = -1;
 		foreach (Edge e in edges)
 			e.stopSearch = false;
 	}
