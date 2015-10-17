@@ -16,7 +16,10 @@ public class Player  : MonoBehaviour, IComparable
 	public int cash;
 	public ArrayList powerPlants = new ArrayList();
 	public ArrayList cities = new ArrayList();
-	
+	public ArrayList plantObject = new ArrayList();
+	public Color color;
+
+
 	public Player ()
 	{
 		Reset();

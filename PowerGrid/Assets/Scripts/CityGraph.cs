@@ -157,23 +157,24 @@ public class CityGraph : MonoBehaviour {
 
 		int cityCost = c.Cost (step);
 
-		//occupied or already owned
+		//occupied or already owned at step 
 		if (cityCost == -1)
 			return -1;
 
 		if (c.PlayerIsOwner (player))
 			return -1;
 
-		//at city cost, if no current cities
+		//player has no current cities, they can buy it at sticker price.
 		if (player.cities.Count == 0)
 			return cityCost;
 
-		//must be connected to a player owned city
-		//or a connected occupied city?
 
 		//if player has cities, 
 		//we do graph search and find cheapest combinedEdge 
 		//from target city to player owned cities
+
+		//must be connected to a player owned city or a connected occupied city?
+
 		ArrayList combinedEdges = new ArrayList();
 		ArrayList queuedCity = new ArrayList ();
 		queuedCity.Add (c);
