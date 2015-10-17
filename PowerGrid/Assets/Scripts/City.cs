@@ -11,20 +11,28 @@ using UnityEngine;
 using System.Collections;
 public class City  : MonoBehaviour
 {
-	private int cost1 = 10;
-	private int cost2 = 15;
-	private int cost3 = 20;
+	private int[] costs = new int[3];
 	public int regionID = 0;
 	public bool beenVisited = false;
 
 	[HideInInspector]
 	public ArrayList owners = new ArrayList();
+	[HideInInspector]
 	public ArrayList edges = new ArrayList();
 
-	public City (string name, int region, GameObject prefab)
-	{
-		gameObject.name = name;
-		regionID = region;
+	private Vector3[] objectOffsets = new Vector3[3];
+
+	private TextMesh textMesh = null;
+	
+	public void Start() {
+		costs[0] = 10;
+		costs[1] = 15;
+		costs[2] = 20;
+
+		float offset = 0.075f;
+		objectOffsets [0] = new Vector3 (-offset, offset, offset);
+		objectOffsets [1] = new Vector3 (0, offset, -offset);
+		objectOffsets [2] = new Vector3 (offset, offset, offset);
 	}
 
 	public override string ToString() {
@@ -38,9 +46,10 @@ public class City  : MonoBehaviour
 
 	public bool PlayerIsOwner(Player p){
 		foreach (Player o in owners) {
-			if(p == o)
+			if(p.gameObject.name == o.gameObject.name)
 				return true;
 		}
+		print (" Player is Not owners");
 		return false;
 	}
 
@@ -49,19 +58,56 @@ public class City  : MonoBehaviour
 	}
 
 	public int Cost(int step) {
+		if (owners == null)
+			owners = new ArrayList ();
+
 		if (owners.Count >= step)
 			return -1;
 
-		if (owners.Count < step)
-			step = owners.Count;
 
-		switch (step) {
-		case 1:
-			return cost1;
-		case 2:
-			return cost2;
-		default: 
-			return cost3;
+		if (PlayerIsOwner (GameState.instance.CurrentPlayer()))
+			return -1;
+
+		if (owners.Count < step-1)
+			step = owners.Count+1;
+
+		return costs [step - 1];
+	}
+
+	public void OnMouseOver() {
+		if(textMesh == null)		
+			textMesh = GameObject.Find ("CityPopupText").GetComponent<TextMesh> ();
+
+		int c = Cost (GameState.instance.gameStep);
+		if(c == -1)
+			textMesh.text = gameObject.name + " Cost: Not Available";
+		else
+			textMesh.text = gameObject.name + " Cost: " + c;
+
+		if (Input.GetMouseButtonDown (0)) {
+
+			//current player buys city
+
+			Player p = GameState.instance.CurrentPlayer();
+			if(c == -1) {
+				print (gameObject.name + " is not available to purchase");
+			} else if(p.cash >= c) {
+				GameObject obj = (GameObject)Instantiate(
+					GameState.instance.powerPlantObject, 
+					transform.position,
+					Quaternion.AngleAxis(Random.Range(0.0f,360.0f),Vector3.up));
+				obj.transform.position += objectOffsets[owners.Count];
+				obj.GetComponent<Renderer>().material.color = p.color;
+				obj.SetActive(true);
+
+				owners.Add(p);
+				p.cities.Add(this);
+				p.cash -= c;
+				print (p.gameObject.name + " bought " + gameObject.name + " for " + c);
+
+			} else {
+				print (p.gameObject.name + " does not have enough cash");
+			}
 		}
 	}
 }

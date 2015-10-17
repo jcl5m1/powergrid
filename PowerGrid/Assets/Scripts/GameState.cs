@@ -10,6 +10,8 @@ public class GameState : MonoBehaviour {
 		BuildCities,
 		Bureaucracy,
 	};
+
+	public GameObject powerPlantObject;
 	
 	private State currentState = State.ComputeTurn;
 	private ArrayList players = null;
@@ -25,18 +27,36 @@ public class GameState : MonoBehaviour {
 	private int step2CityCount = 7;
 	private int randomlyRemovedCards = 4;
 	private int numberOfRegions = 3;
-	public int[] cityCountPayoutTable;
-	private int gameStep = 1;
+	private int[] cityCountPayoutTable;
+
+	[HideInInspector]
+	public int gameStep = 1;
 
 	private int playerTurn = 0;
-
-	public GameObject powerPlantPrefab;
-	public GameObject cityPrefab;
-
+	
 	private PowerPlantMaterialStore materialStore;
+	
+	public static GameState instance = null;
+//
+//	public static GameState GetInstance()
+//	{
+//		if(instance == null)
+//		{
+//			instance = new GameState();
+//			instance.Start();
+//		}
+//		
+//		return instance;
+//	}
 
+	public Player CurrentPlayer() {
+		return (Player)players [playerTurn];
+	}
+	
 	// Use this for initialization
 	void Start () {
+
+		instance = this;
 		print ("Initialize game");
 
 		//setup players
@@ -191,6 +211,11 @@ public class GameState : MonoBehaviour {
 		if (Input.GetKeyDown (KeyCode.R)) {
 			Reset();
 		}
+		if (Input.GetKeyDown (KeyCode.S)) {
+			gameStep++;
+			if(gameStep == 4)
+				gameStep = 1;
+		}
 
 
 		switch (currentState) {
@@ -268,9 +293,9 @@ public class GameState : MonoBehaviour {
 		int index = 0;
 		foreach (Player p in players) {
 			if(index == playerTurn) {
-				p.gameObject.GetComponent<Renderer>().material.color = Color.red;
+				p.gameObject.GetComponent<Renderer>().material.color = p.color;
 			} else {
-				p.gameObject.GetComponent<Renderer>().material.color = Color.white;
+				p.gameObject.GetComponent<Renderer>().material.color = Color.gray;
 
 			}
 			index++;
