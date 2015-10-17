@@ -195,7 +195,7 @@ public class CityGraph : MonoBehaviour {
 
 				if((otherCity.effectiveTravelCost == -1)||(otherCity.effectiveTravelCost > (e.cost + c.effectiveTravelCost))){
 
-					print ("other city cost: " + otherCity.effectiveTravelCost + " new: " + e.cost + " "  +  c.effectiveTravelCost);
+//					print ("other city cost: " + otherCity.effectiveTravelCost + " new: " + e.cost + " "  +  c.effectiveTravelCost);
 					otherCity.effectiveTravelCost = e.cost + c.effectiveTravelCost;
 					if(otherCity.Occupancy() > 0) {//depends on what the level city being bought?
 						//only cascade search if other city is occupied, then we can pass through

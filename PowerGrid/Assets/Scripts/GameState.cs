@@ -324,10 +324,10 @@ public class GameState : MonoBehaviour {
 			Vector3 pos = playerOrderPiece.transform.position;
 			Quaternion rot = Quaternion.identity;
 			if(i == playerTurn) {
-				pos.y = 0.1f + 0.1f*(1.0f + Mathf.Sin (5*UnityEngine.Time.realtimeSinceStartup));
+				pos.y = 0.0f + 0.1f*(1.0f + Mathf.Sin (5*UnityEngine.Time.realtimeSinceStartup));
 				rot = Quaternion.Euler (0, 120 * UnityEngine.Time.realtimeSinceStartup, 0);
 			} else {
-				pos.y = 0.1f;
+				pos.y = 0.0f;
 			}
 			playerOrderPiece.transform.position = pos;
 			playerOrderPiece.transform.rotation = rot;

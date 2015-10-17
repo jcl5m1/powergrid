@@ -32,9 +32,9 @@ public class City  : MonoBehaviour
 		costTable[2] = 20;
 
 		float offset = 0.075f;
-		objectOffsets [0] = new Vector3 (-offset, offset, offset);
-		objectOffsets [1] = new Vector3 (0, offset, -offset);
-		objectOffsets [2] = new Vector3 (offset, offset, offset);
+		objectOffsets [0] = new Vector3 (-offset, 0.0f, offset);
+		objectOffsets [1] = new Vector3 (0, 0.0f, -offset);
+		objectOffsets [2] = new Vector3 (offset, 0.0f, offset);
 	}
 
 	public override string ToString() {
@@ -62,6 +62,9 @@ public class City  : MonoBehaviour
 		if (owners == null)
 			owners = new ArrayList ();
 
+		if (PlayerIsOwner (GameState.instance.CurrentPlayer ()))
+			return -1;
+
 		if (owners.Count >= step)
 			return -1;
 
@@ -80,8 +83,8 @@ public class City  : MonoBehaviour
 		if (textMesh == null)
 			textMesh = textObj.GetComponent<TextMesh> ();
 	
-
 		int effectiveCost = StepCost (GameState.instance.gameStep) + effectiveTravelCost;
+
 		if ((effectiveTravelCost == -1) || (StepCost (GameState.instance.gameStep) == -1)) {
 			effectiveCost = -1;
 		}
