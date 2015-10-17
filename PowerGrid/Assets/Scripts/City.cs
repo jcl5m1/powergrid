@@ -78,11 +78,23 @@ public class City  : MonoBehaviour
 		if (GameState.instance.CurrentState != GameState.State.BuildCities)
 			return;
 
-		if (textObj == null)
+		if (textObj == null) {
 			textObj = GameObject.Find ("CityPopupText");
-		if (textMesh == null)
-			textMesh = textObj.GetComponent<TextMesh> ();
+			if(textObj != null) {
+				if (textMesh == null) {
+					textMesh = textObj.GetComponent<TextMesh> ();
+				}
+			}
+		}
+
+		if (textMesh == null) {
+			return;
+
+		}
 	
+
+		textObj.SetActive (true);
+
 		int effectiveCost = StepCost (GameState.instance.gameStep) + effectiveTravelCost;
 
 		if ((effectiveTravelCost == -1) || (StepCost (GameState.instance.gameStep) == -1)) {

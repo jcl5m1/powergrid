@@ -21,11 +21,14 @@ public class Player  : MonoBehaviour, IComparable
 	public ArrayList cities = new ArrayList();
 	
 	public Color color;
-	
+
+	public GameObject scorePiece;
+	public TextMesh scoreText;
+	public TextMesh cashText;
+
 	void Start () {
 		starterCash = cash;
-		foreach (Renderer r in GetComponentsInChildren<Renderer> ())
-			r.material.color = color;
+		scorePiece.GetComponent<Renderer> ().material.color = color;
 		Reset ();
 	}
 	public int GetOrderScore() {
@@ -50,6 +53,11 @@ public class Player  : MonoBehaviour, IComparable
 		powerPlants.Clear ();
 		cash = starterCash;
 		cities.Clear ();
+	}
+
+	public void Update() {
+		scoreText.text = cities.Count.ToString();
+		cashText.text = "$" + cash.ToString();
 	}
 
 	public override string ToString() {

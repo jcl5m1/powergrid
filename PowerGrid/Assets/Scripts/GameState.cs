@@ -25,6 +25,8 @@ public class GameState : MonoBehaviour {
 
 	private CityGraph graph;
 
+	public TextMesh stateText;
+
 	private int maxPowerPlants = 3;
 	private int gameEndCityCount = 17;
 	private int step2CityCount = 7;
@@ -233,7 +235,9 @@ public class GameState : MonoBehaviour {
 
 		if (cityPopupText == null)
 			cityPopupText = GameObject.Find ("CityPopupText");
-		cityPopupText.SetActive (currentState == State.BuildCities);
+
+		if(currentState != State.BuildCities)
+			cityPopupText.transform.position = new Vector3(100,100,100);//offscreen
 
 		switch (currentState) {
 		case  State.ComputeTurn:
@@ -352,6 +356,10 @@ public class GameState : MonoBehaviour {
 	}
 
 	void OnGUI() {
+
+		stateText.text = "Game Step: " + gameStep + 
+			"\nActivity: " + currentState;
+
 
 		int yPos = 10;
 		GUI.Label (new Rect (10, yPos, 500, 20), "Round: " + gameRound + 
