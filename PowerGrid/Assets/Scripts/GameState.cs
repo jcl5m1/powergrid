@@ -44,6 +44,14 @@ public class GameState : MonoBehaviour {
 	public static GameState instance = null;
 	private GameObject cityPopupText;
 
+	public GameObject materialShopPopup;
+	public GameObject powerplantShopPopup;
+
+	public TextMesh coalShopText;
+	public TextMesh oilShopText;
+	public TextMesh garbageShopText;
+	public TextMesh uraniumShopText;
+	
 	public Player CurrentPlayer() {
 		return (Player)players [playerTurn];
 	}
@@ -66,14 +74,12 @@ public class GameState : MonoBehaviour {
 		playerOrderPieces.Add (GameObject.Find("PlayerOrderPiece3"));
 		playerOrderPieces.Add (GameObject.Find("PlayerOrderPiece4"));
 
-
 		//create objects from GUI setup
 		Player[] p = FindObjectsOfType(typeof(Player)) as Player[];
 		for (int i = 0; i < p.Length; i++) {
 			players.Add (p [i]);
 			((GameObject)playerOrderPieces[i]).GetComponent<Renderer>().material.color = p[i].color;
 		}
-
 
 		players.Sort ();
 		players.Reverse ();
@@ -238,6 +244,12 @@ public class GameState : MonoBehaviour {
 
 		if(currentState != State.BuildCities)
 			cityPopupText.transform.position = new Vector3(100,100,100);//offscreen
+		if (currentState != State.BuyMaterials)
+			materialShopPopup.transform.localPosition = new Vector3 (-2.0f,0.3f, -0.01f);
+		if (currentState != State.BuyPlants)
+			powerplantShopPopup.transform.localPosition = new Vector3 (-2.0f,0.3f, -0.01f);
+
+//			cityPopupText.transform.position = new Vector3(100,100,100);//offscreen
 
 		switch (currentState) {
 		case  State.ComputeTurn:
@@ -259,6 +271,8 @@ public class GameState : MonoBehaviour {
 			//adjust price
 			//click on player that buys
 			//redraw
+			powerplantShopPopup.transform.localPosition = new Vector3 (-0.4f,0.3f, -0.01f);
+
 			if (advanceTurn) {
 				playerTurn++;
 				if(playerTurn == players.Count) {
@@ -277,6 +291,9 @@ public class GameState : MonoBehaviour {
 			//show each player's power plants
 			//show market
 			//allow buying into each plant by clicking
+
+			materialShopPopup.transform.localPosition = new Vector3 (-0.4f,0.3f, -0.01f);
+
 			if (advanceTurn) {
 				playerTurn--;
 				if(playerTurn == -1) {
@@ -360,7 +377,6 @@ public class GameState : MonoBehaviour {
 		stateText.text = "Game Step: " + gameStep + 
 			"\nActivity: " + currentState;
 
-
 		int yPos = 10;
 		GUI.Label (new Rect (10, yPos, 500, 20), "Round: " + gameRound + 
             " Step: " + gameStep + 
@@ -381,6 +397,11 @@ public class GameState : MonoBehaviour {
 		          " Oil: [" + materialStore.QueryInventory(PowerPlantMaterialStore.Type.Oil) + "," + materialStore.QueryCost(PowerPlantMaterialStore.Type.Oil)+"]" +
 		          " Garbage: [" + materialStore.QueryInventory(PowerPlantMaterialStore.Type.Garbage) + "," + materialStore.QueryCost(PowerPlantMaterialStore.Type.Garbage)+"]" +
 		          " Uranium: [" + materialStore.QueryInventory(PowerPlantMaterialStore.Type.Uranium) + "," + materialStore.QueryCost(PowerPlantMaterialStore.Type.Uranium)+"]");
+
+		coalShopText.text = "Coal:\n" + materialStore.QueryInventory(PowerPlantMaterialStore.Type.Coal)+ " @ $" + materialStore.QueryCost(PowerPlantMaterialStore.Type.Coal); 
+		oilShopText.text = "Oil:\n" + materialStore.QueryInventory(PowerPlantMaterialStore.Type.Oil)+ " @ $" + materialStore.QueryCost(PowerPlantMaterialStore.Type.Oil); 
+		garbageShopText.text = "Garbage:\n" + materialStore.QueryInventory(PowerPlantMaterialStore.Type.Garbage)+ " @ $"+ materialStore.QueryCost(PowerPlantMaterialStore.Type.Garbage); 
+		uraniumShopText.text = "Uranium:\n" + materialStore.QueryInventory(PowerPlantMaterialStore.Type.Uranium)+ " @ $"+ materialStore.QueryCost(PowerPlantMaterialStore.Type.Uranium); 
 		yPos += 20;
 
 		int count = 0;
