@@ -151,7 +151,7 @@ public class CityGraph : MonoBehaviour {
 		cities[index1].edges.Add (e);
 		cities[index2].edges.Add (e);
 	}
-
+	
 	public void RecomputeCityTravelCosts(int step, Player player) {
 				
 		//if player has no cities, just current step value of city

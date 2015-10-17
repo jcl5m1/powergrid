@@ -245,9 +245,9 @@ public class GameState : MonoBehaviour {
 		if(currentState != State.BuildCities)
 			cityPopupText.transform.position = new Vector3(100,100,100);//offscreen
 		if (currentState != State.BuyMaterials)
-			materialShopPopup.transform.localPosition = new Vector3 (-2.0f,0.3f, -0.01f);
+			materialShopPopup.transform.localPosition = new Vector3 (-2.0f,0.3f, -0.05f);
 		if (currentState != State.BuyPlants)
-			powerplantShopPopup.transform.localPosition = new Vector3 (-2.0f,0.3f, -0.01f);
+			powerplantShopPopup.transform.localPosition = new Vector3 (-2.0f,0.3f, -0.05f);
 
 //			cityPopupText.transform.position = new Vector3(100,100,100);//offscreen
 
@@ -271,7 +271,7 @@ public class GameState : MonoBehaviour {
 			//adjust price
 			//click on player that buys
 			//redraw
-			powerplantShopPopup.transform.localPosition = new Vector3 (-0.4f,0.3f, -0.01f);
+			powerplantShopPopup.transform.localPosition = new Vector3 (-0.4f,0.3f, -0.05f);
 
 			if (advanceTurn) {
 				playerTurn++;
@@ -292,7 +292,7 @@ public class GameState : MonoBehaviour {
 			//show market
 			//allow buying into each plant by clicking
 
-			materialShopPopup.transform.localPosition = new Vector3 (-0.4f,0.3f, -0.01f);
+			materialShopPopup.transform.localPosition = new Vector3 (-0.4f,0.3f, -0.05f);
 
 			if (advanceTurn) {
 				playerTurn--;
@@ -312,11 +312,12 @@ public class GameState : MonoBehaviour {
 		case  State.BuildCities:
 			//hovering over city to shows cost (compute cost by searching over graph)
 
-			//click to buy
 			if (advanceTurn) {
+				CommitCityPurchases();
 				playerTurn--;
 
 				if(playerTurn == -1) {
+
 					advanceState = true;
 					playerTurn = 0;
 				} else {
@@ -326,7 +327,7 @@ public class GameState : MonoBehaviour {
 			}
 			if(advanceState) {
 				currentState = State.Bureaucracy;
-//				print (currentState);
+				CommitCityPurchases();
 			}
 		break;
 		case  State.Bureaucracy:
@@ -369,7 +370,11 @@ public class GameState : MonoBehaviour {
 	}
 	public void RecomputeTravelCosts() {
 		graph.RecomputeCityTravelCosts(gameStep, CurrentPlayer());
+	}
 
+	public void CommitCityPurchases() {
+		foreach (Player p in players)
+			p.CommitPurchases ();
 	}
 
 	void OnGUI() {

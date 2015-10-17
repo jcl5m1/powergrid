@@ -19,12 +19,23 @@ public class Player  : MonoBehaviour, IComparable
 	public ArrayList powerPlants = new ArrayList();
 	[HideInInspector]
 	public ArrayList cities = new ArrayList();
-	
+	public ArrayList cityPurchases = new ArrayList();
+
 	public Color color;
 
 	public GameObject scorePiece;
 	public TextMesh scoreText;
 	public TextMesh cashText;
+	
+	public struct CityPurchase {
+		public City city;
+		public int purchaseCost;
+		public GameObject obj;
+		public bool isTentative;
+		public void Commit() {
+			isTentative = false;
+		}
+	}
 
 	void Start () {
 		starterCash = cash;
@@ -53,11 +64,36 @@ public class Player  : MonoBehaviour, IComparable
 		powerPlants.Clear ();
 		cash = starterCash;
 		cities.Clear ();
+		foreach (CityPurchase purchase in cityPurchases) {
+			DestroyImmediate (purchase.obj);
+		}
+		cityPurchases.Clear ();
 	}
 
 	public void Update() {
 		scoreText.text = cities.Count.ToString();
 		cashText.text = "$" + cash.ToString();
+
+		foreach (CityPurchase purchase in cityPurchases) {
+
+			Vector3 pos = purchase.obj.transform.position;
+			Quaternion rot = purchase.obj.transform.rotation;
+			if(purchase.isTentative) {
+				pos.y = 0.0f + 0.1f*(1.0f + Mathf.Sin (5*UnityEngine.Time.realtimeSinceStartup));
+				rot = Quaternion.Euler (0, 120 * UnityEngine.Time.realtimeSinceStartup, 0);
+			} else {
+				pos.y = 0.0f;
+			}
+//			purchase.obj.transform.position = pos;
+//			purchase.obj.transform.rotation = rot;
+		}
+
+	}
+
+	public void CommitPurchases() {
+		print ("commiting purchases");
+		foreach (CityPurchase cp in cityPurchases)
+			cp.Commit ();
 	}
 
 	public override string ToString() {

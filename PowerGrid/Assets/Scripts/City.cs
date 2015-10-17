@@ -25,7 +25,7 @@ public class City  : MonoBehaviour
 
 	private TextMesh textMesh = null;
 	private GameObject textObj = null;
-
+	
 	public void Start() {
 		costTable[0] = 10;
 		costTable[1] = 15;
@@ -89,10 +89,8 @@ public class City  : MonoBehaviour
 
 		if (textMesh == null) {
 			return;
-
 		}
 	
-
 		textObj.SetActive (true);
 
 		int effectiveCost = StepCost (GameState.instance.gameStep) + effectiveTravelCost;
@@ -112,30 +110,36 @@ public class City  : MonoBehaviour
 		if (Input.GetMouseButtonDown (0)) {
 
 			//current player buys city
+//			if(!isTentative) {
+				Player p = GameState.instance.CurrentPlayer();
+				if(effectiveCost == -1) {
+					print (gameObject.name + " is not available to purchase");
+				} else if(p.cash >= effectiveCost) {
+					GameObject obj = (GameObject)Instantiate(
+						GameState.instance.powerPlantObject, 
+						transform.position,
+						Quaternion.AngleAxis(Random.Range(0.0f,360.0f),Vector3.up));
+					obj.transform.position += objectOffsets[owners.Count];					
+					obj.GetComponent<Renderer>().material.color = p.color;
+					obj.SetActive(true);
 
-			Player p = GameState.instance.CurrentPlayer();
-			if(effectiveCost == -1) {
-				print (gameObject.name + " is not available to purchase");
-			} else if(p.cash >= effectiveCost) {
-				GameObject obj = (GameObject)Instantiate(
-					GameState.instance.powerPlantObject, 
-					transform.position,
-					Quaternion.AngleAxis(Random.Range(0.0f,360.0f),Vector3.up));
-				obj.transform.position += objectOffsets[owners.Count];
+					Player.CityPurchase purchase = new Player.CityPurchase();
+					purchase.purchaseCost = effectiveCost;
+					purchase.city = this;
+					purchase.isTentative = true;
+					purchase.obj = obj;
 
-				obj.GetComponent<Renderer>().material.color = p.color;
-				obj.SetActive(true);
-
-				owners.Add(p);
-				p.cities.Add(this);
-				p.cash -= effectiveCost;
-				print (p.gameObject.name + " bought " + gameObject.name + " for " + effectiveCost);
-
-				GameState.instance.RecomputeTravelCosts();
-
-			} else {
-				print (p.gameObject.name + " does not have enough cash");
-			}
+					owners.Add(p);
+					p.cityPurchases.Add(purchase);
+					p.cities.Add(this);
+					p.cash -= effectiveCost;
+					print (p.gameObject.name + " bought " + gameObject.name + " for " + effectiveCost);
+					
+					GameState.instance.RecomputeTravelCosts();					
+				} else {
+					print (p.gameObject.name + " does not have enough cash");
+				}
+//			}
 		}
 	}
 }
