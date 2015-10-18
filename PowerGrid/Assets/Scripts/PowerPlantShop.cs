@@ -192,20 +192,35 @@ public class PowerPlantShop : MonoBehaviour {
 	}
 
 	public void Show(bool show) {
-
 		if (show) {
-			transform.localPosition = new Vector3 (0.0f,0.0f, -0.01f);
+			transform.localPosition = new Vector3 (0.0f,0.0f, -0.02f);
 			DeselectAll ();
 			DealCards ();
 			LayoutPowerPlantCards ();
 			LayoutPlayerMiniViews ();
 		} else {
-			transform.localPosition = new Vector3 (-2.0f,0.3f, -0.15f);
-
+			transform.localPosition = new Vector3 (100.0f,100.0f,0);
+			foreach(Player p in GameState.instance.Players) {
+				p.PlayerMiniViewObj.transform.position = new Vector3(100,100,0);
+				p.PlayerMiniViewObj.GetComponent<PlayerMiniView>().Layout();
+			}
 		}
 	}
 	
 	public void SetSelectedPlant(PowerPlant p) {
+
+
+		bool isBiddable = true;
+		for (int i = biddableCount; i < inMarketPowerPlants.Count; i++) {
+			if(((PowerPlant)inMarketPowerPlants[i])==p){
+				isBiddable = false;
+				break;
+			}
+		}
+
+		if (!isBiddable)
+			return;
+
 		selectedPlant = p;
 		currentBid = p.baseCost;
 		LayoutPowerPlantCards ();
@@ -217,17 +232,13 @@ public class PowerPlantShop : MonoBehaviour {
 
 		bidText.text = "Bid: " + currentBid;
 
-//		foreach (PowerPlant pp in drawDeckPowerPlants) {
-//			pp.gameObject.GetComponent<Renderer>().material.color = Color.gray;
-//		}
-
 		if(selectedPlant != null) {
 			Vector3 pos = selectedPlant.gameObject.transform.position;
-			pos.y = 0.2f + 0.2f * (1.0f + Mathf.Sin (5 * UnityEngine.Time.realtimeSinceStartup));
+			pos.y = transform.position.y + 0.01f + 0.2f * (1.0f + Mathf.Sin (5 * UnityEngine.Time.realtimeSinceStartup));
 			selectedPlant.gameObject.transform.position = pos;
 
 			pos = selectedPlant.MiniCardObj.transform.position;
-			pos.y = 0.2f + 0.2f * (1.0f + Mathf.Sin (5 * UnityEngine.Time.realtimeSinceStartup));
+			pos.y = transform.position.y + 0.01f + 0.2f * (1.0f + Mathf.Sin (5 * UnityEngine.Time.realtimeSinceStartup));
 			selectedPlant.MiniCardObj.transform.position = pos;
 		}
 

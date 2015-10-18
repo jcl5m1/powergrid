@@ -153,74 +153,6 @@ public class GameState : MonoBehaviour {
 		}
 	}
 
-//
-//	void MovePowerPlantCard(int fromPosition, int toPosition) {
-//
-//		if (toPosition == fromPosition)
-//			return;
-//		drawDeckPowerPlants.Insert (toPosition, drawDeckPowerPlants [fromPosition]);
-//
-//		if (toPosition < fromPosition) 
-//			drawDeckPowerPlants.RemoveAt (fromPosition+1);
-//		else
-//			drawDeckPowerPlants.RemoveAt (fromPosition);
-//	}
-//
-//	int FindIndexOfPowerPlantCard(int cost) {
-//		for (int i = 0; i < drawDeckPowerPlants.Count; i++) {
-//			if( ((PowerPlant)drawDeckPowerPlants[i]).baseCost == cost)
-//				return i;			
-//		}
-//		return -1;
-//	}
-//
-//	void ShufflePowerPlantCards() {
-//		ArrayList shuffled = new ArrayList();
-//
-//		int randomIndex = 0;
-//		while (drawDeckPowerPlants.Count > 0)
-//		{
-//			randomIndex = Random.Range(0, drawDeckPowerPlants.Count); //Choose a random object in the list
-//			shuffled.Add(drawDeckPowerPlants[randomIndex]); //add it to the new, random list
-//			drawDeckPowerPlants.RemoveAt(randomIndex); //remove to avoid duplicates
-//		}
-//
-//		drawDeckPowerPlants = shuffled;
-//
-//		//put step 3 on bottom
-//		int index = FindIndexOfPowerPlantCard (100);
-//		if (index != -1)
-//			MovePowerPlantCard (index, drawDeckPowerPlants.Count);
-//
-//		//put 13 on top
-//		index = FindIndexOfPowerPlantCard (13);
-//		if (index != -1)
-//			MovePowerPlantCard (index, 0);
-//
-//	}
-//	
-//	void InitializePowerPlants() {
-//		drawDeckPowerPlants = new ArrayList ();
-//		inMarketPowerPlants = new ArrayList ();
-//
-//		//create power plant cards
-//		PowerPlant[] plants = FindObjectsOfType(typeof(PowerPlant)) as PowerPlant[];
-//		for (int i = 0; i < plants.Length; i++) {
-//			drawDeckPowerPlants.Add (plants [i]);
-//		}
-//
-//		drawDeckPowerPlants.Sort ();
-//	}
-//
-//	void DealCards() {
-//		while (inMarketPowerPlants.Count < marketCount) {
-//			inMarketPowerPlants.Add(drawDeckPowerPlants[0]);
-//			drawDeckPowerPlants.RemoveAt(0);
-//		}	
-//
-//		inMarketPowerPlants.Sort ();
-//	}
-
 	void DoBureaucracy() {
 		foreach (Player p in players) {
 			int powerCount = 0;
@@ -262,8 +194,6 @@ public class GameState : MonoBehaviour {
 			cityPopupText.transform.position = new Vector3(100,100,100);//offscreen
 		if (currentState != State.BuyMaterials)
 			materialShopPopup.transform.localPosition = new Vector3 (-2.0f,0.3f, -0.05f);
-		if (currentState != State.BuyPlants)
-			powerplantShop.Show (false);
 
 //			cityPopupText.transform.position = new Vector3(100,100,100);//offscreen
 
@@ -281,7 +211,6 @@ public class GameState : MonoBehaviour {
 			currentState = State.BuyPlants;
 			powerplantShop.Show(true);
 
-			powerplantShop.DeselectAll();
 			playerTurn = 0;
 			break;
 		case  State.BuyPlants:
@@ -298,6 +227,7 @@ public class GameState : MonoBehaviour {
 				if(playerTurn == players.Count) {
 					advanceState = true;
 					playerTurn = players.Count-1;
+					powerplantShop.Show(false);
 				}
 			}
 
@@ -375,17 +305,6 @@ public class GameState : MonoBehaviour {
 			playerOrderPiece.transform.rotation = rot;
 		}
 
-//		foreach (PowerPlant pp in drawDeckPowerPlants) {
-//			pp.gameObject.GetComponent<Renderer>().material.color = Color.gray;
-//		}
-//		index = 0;
-//		foreach (PowerPlant pp in inMarketPowerPlants) {
-//			if(index < biddableCount)
-//				pp.gameObject.GetComponent<Renderer>().material.color = Color.green;
-//			else
-//				pp.gameObject.GetComponent<Renderer>().material.color = Color.blue;
-//			index++;
-//		}
 
 	}
 	public void RecomputeTravelCosts() {
