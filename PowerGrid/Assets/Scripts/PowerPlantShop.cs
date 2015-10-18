@@ -18,7 +18,7 @@ public class PowerPlantShop : MonoBehaviour {
 
 	[HideInInspector]
 	public PowerPlant selectedPlant = null;
-
+	
 	private TextMesh bidText;
 
 	// Use this for initialization
@@ -91,6 +91,7 @@ public class PowerPlantShop : MonoBehaviour {
 		PowerPlant[] plants = FindObjectsOfType(typeof(PowerPlant)) as PowerPlant[];
 		for (int i = 0; i < plants.Length; i++) {
 			drawDeckPowerPlants.Add (plants [i]);
+			plants[i].purchased = false;
 		}
 		
 		drawDeckPowerPlants.Sort ();
@@ -104,15 +105,15 @@ public class PowerPlantShop : MonoBehaviour {
 		
 		inMarketPowerPlants.Sort ();
 
-		LayoutCards ();
+		LayoutPowerPlantCards ();
 	}
 
-	public void LayoutCards() {
+	public void LayoutPowerPlantCards() {
 		//layout cards
-		float xPos = 0.05f;
-		float xStep = 0.15f;
-		float yPos = -0.2f;
-		float yStep = 0.15f;
+		float xPos = -0.4f;
+		float xStep = 0.1f;
+		float yPos = 0.1f;
+		float yStep = 0.2f;
 
 		for (int i = 0; i < inMarketPowerPlants.Count; i++) {
 			PowerPlant pp = (PowerPlant)inMarketPowerPlants[i];
@@ -127,6 +128,43 @@ public class PowerPlantShop : MonoBehaviour {
 		}
 	}
 
+	public void DiscardSelectedPowerPlant() {
+		if (selectedPlant == null)
+			return;
+
+		if (inMarketPowerPlants.Contains (selectedPlant)) {
+			inMarketPowerPlants.Remove(selectedPlant);
+			selectedPlant.Hide();
+			DealCards();
+			LayoutPowerPlantCards();
+			return;
+		}
+
+		foreach (Player p in GameState.instance.Players) {
+			if(p.powerPlants.Contains(selectedPlant)) {
+				p.powerPlants.Remove(selectedPlant);
+				selectedPlant.Hide();
+				break;
+			}
+		}
+		LayoutPlayerMiniViews ();
+	}
+
+	public void LayoutPlayerMiniViews() {
+		//layout players
+		float xPos = -3.25f;
+		float xStep = 2.2f;
+		float zPos = -1.0f;
+
+		Vector3 localPos = transform.position;
+		int index = 0;
+		foreach(Player p in GameState.instance.Players) {
+			p.PlayerMiniViewObj.transform.position = localPos + new Vector3(xPos + xStep*index, 0.01f, zPos);
+			p.PlayerMiniViewObj.GetComponent<PlayerMiniView>().Layout();
+			index++;
+		}
+	}
+
 	public void DeselectAll() {
 		selectedPlant = null;
 	}
@@ -134,16 +172,44 @@ public class PowerPlantShop : MonoBehaviour {
 	public void BuyCurrentCity(Player p) {
 		if (selectedPlant == null)
 			return;
+		if (selectedPlant.purchased)//can't purchase already purchased plant
+			return;
 		if (p.cash < currentBid)
+			return;
+		if (p.powerPlants.Count >= maxPowerPlants)
 			return;
 
 		p.powerPlants.Add(selectedPlant);
 		p.cash -= currentBid;
+		selectedPlant.purchased = true;
 		inMarketPowerPlants.Remove(selectedPlant);
 		selectedPlant.transform.position = new Vector3 (100, 100, 100);
-		selectedPlant = null;
+		DeselectAll ();
 		DealCards();
-		LayoutCards();
+		LayoutPowerPlantCards();
+		LayoutPlayerMiniViews ();
+
+	}
+
+	public void Show(bool show) {
+
+		if (show) {
+			transform.localPosition = new Vector3 (0.0f,0.0f, -0.01f);
+			DeselectAll ();
+			DealCards ();
+			LayoutPowerPlantCards ();
+			LayoutPlayerMiniViews ();
+		} else {
+			transform.localPosition = new Vector3 (-2.0f,0.3f, -0.15f);
+
+		}
+	}
+	
+	public void SetSelectedPlant(PowerPlant p) {
+		selectedPlant = p;
+		currentBid = p.baseCost;
+		LayoutPowerPlantCards ();
+		LayoutPlayerMiniViews ();
 	}
 
 	// Update is called once per frame
@@ -151,17 +217,20 @@ public class PowerPlantShop : MonoBehaviour {
 
 		bidText.text = "Bid: " + currentBid;
 
-		foreach (PowerPlant pp in drawDeckPowerPlants) {
-			pp.gameObject.GetComponent<Renderer>().material.color = Color.gray;
-		}
-
-		LayoutCards ();
+//		foreach (PowerPlant pp in drawDeckPowerPlants) {
+//			pp.gameObject.GetComponent<Renderer>().material.color = Color.gray;
+//		}
 
 		if(selectedPlant != null) {
 			Vector3 pos = selectedPlant.gameObject.transform.position;
-			pos.y = 1.0f + 0.25f * (1.0f + Mathf.Sin (5 * UnityEngine.Time.realtimeSinceStartup));
+			pos.y = 0.2f + 0.2f * (1.0f + Mathf.Sin (5 * UnityEngine.Time.realtimeSinceStartup));
 			selectedPlant.gameObject.transform.position = pos;
+
+			pos = selectedPlant.MiniCardObj.transform.position;
+			pos.y = 0.2f + 0.2f * (1.0f + Mathf.Sin (5 * UnityEngine.Time.realtimeSinceStartup));
+			selectedPlant.MiniCardObj.transform.position = pos;
 		}
+
 	}
 
 }

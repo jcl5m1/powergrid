@@ -20,17 +20,33 @@ public class PlayerMiniView : MonoBehaviour {
 		player = p;
 	}
 
-	// Update is called once per frame
-	void Update () {
+	public void Layout() {
 		if (player != null) {
 			nameText.text = player.gameObject.name;
 			cityText.text = "C:" + player.PowerPotential () + "/" + player.cities.Count;
 			cashText.text = "$" + player.cash.ToString ();
 			for(int i = plantMiniViews.Count; i < player.powerPlants.Count; i++) {
 				GameObject obj = ((PowerPlant)player.powerPlants[i]).MiniCardObj;
-				obj.transform.parent = transform;
-				obj.transform.localPosition = new Vector3(0,0.1f - 0.2f*i,-0.01f);
 				plantMiniViews.Add (obj);
+			}
+			int index = 0;
+			foreach(PowerPlant pp in player.powerPlants) {
+				GameObject obj = pp.MiniCardObj;
+				obj.transform.parent = transform;
+				obj.transform.localPosition = new Vector3(0,0.1f - 0.2f*index,-0.01f);
+				index++;
+			}
+		}
+	}
+
+	// Update is called once per frame
+	void Update () {
+	}
+
+	public void OnMouseOver() {
+		if (GameState.instance.CurrentState == GameState.State.BuyPlants) {
+			if (Input.GetMouseButtonDown (0)) {
+				GameState.instance.PowerplantShop.BuyCurrentCity(player);
 			}
 		}
 	}

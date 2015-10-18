@@ -66,6 +66,12 @@ public class Player  : MonoBehaviour, IComparable
 		return GetOrderScore().CompareTo (((Player)p).GetOrderScore());
 	}
 
+	public GameObject PlayerMiniViewObj {
+		get {
+			return playerMiniViewObj;
+		}
+	}
+
 	public int GetCityCount() {
 		return cities.Count;
 	}
@@ -130,12 +136,10 @@ public class Player  : MonoBehaviour, IComparable
 		return info;
 	}
 
-
 	public void OnMouseOver() {
 		if (GameState.instance.CurrentState == GameState.State.BuyPlants) {
 			if (Input.GetMouseButtonDown (0)) {
-				PowerPlantShop shop = GameObject.FindObjectOfType<PowerPlantShop>();
-				shop.BuyCurrentCity(this);
+				GameState.instance.PowerplantShop.BuyCurrentCity(this);
 			}
 		}
 	}

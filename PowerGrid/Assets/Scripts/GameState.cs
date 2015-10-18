@@ -44,7 +44,7 @@ public class GameState : MonoBehaviour {
 	private GameObject cityPopupText;
 
 	public GameObject materialShopPopup;
-	public GameObject powerplantShopPopup;
+//	public GameObject powerplantShopPopup;
 
 	public TextMesh coalShopText;
 	public TextMesh oilShopText;
@@ -53,6 +53,12 @@ public class GameState : MonoBehaviour {
 	
 	public Player CurrentPlayer() {
 		return (Player)players [playerTurn];
+	}
+
+	public ArrayList Players {
+		get {
+			return players;
+		}
 	}
 	
 	// Use this for initialization
@@ -93,6 +99,12 @@ public class GameState : MonoBehaviour {
 //		DealCards ();
 //
 //		ShufflePowerPlantCards ();
+	}
+
+	public PowerPlantShop PowerplantShop {
+		get {
+			return powerplantShop;
+		}
 	}
 
 	void Reset() {
@@ -251,7 +263,7 @@ public class GameState : MonoBehaviour {
 		if (currentState != State.BuyMaterials)
 			materialShopPopup.transform.localPosition = new Vector3 (-2.0f,0.3f, -0.05f);
 		if (currentState != State.BuyPlants)
-			powerplantShopPopup.transform.localPosition = new Vector3 (-2.0f,0.3f, -0.05f);
+			powerplantShop.Show (false);
 
 //			cityPopupText.transform.position = new Vector3(100,100,100);//offscreen
 
@@ -267,6 +279,8 @@ public class GameState : MonoBehaviour {
 			}
 
 			currentState = State.BuyPlants;
+			powerplantShop.Show(true);
+
 			powerplantShop.DeselectAll();
 			playerTurn = 0;
 			break;
@@ -276,7 +290,8 @@ public class GameState : MonoBehaviour {
 			//adjust price
 			//click on player that buys
 			//redraw
-			powerplantShopPopup.transform.localPosition = new Vector3 (-0.4f,0.3f, -0.05f);
+			//move plant shop into place
+
 
 			if (advanceTurn) {
 				playerTurn++;

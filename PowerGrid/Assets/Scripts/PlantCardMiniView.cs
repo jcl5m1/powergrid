@@ -24,5 +24,13 @@ public class PlantCardMiniView : MonoBehaviour {
 			powerText.text = "P:" + plant.power.ToString();
 		}
 	}
+	
+	public void OnMouseOver() {
+		if (GameState.instance.CurrentState == GameState.State.BuyPlants) {
+			if (Input.GetMouseButtonDown (0)) {
+				GameState.instance.PowerplantShop.SetSelectedPlant(plant);
+			}
+		}
+	}
 
 }

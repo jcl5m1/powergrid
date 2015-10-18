@@ -19,6 +19,9 @@ public class PowerPlant : MonoBehaviour, IComparable
 	[HideInInspector]
 	public int materialStock;
 
+	[HideInInspector]
+	public bool purchased;
+
 	private GameObject miniCardObj = null;
 	private PlantCardMiniView miniViewData = null;
 	public Type type;
@@ -39,8 +42,12 @@ public class PowerPlant : MonoBehaviour, IComparable
 	}
 	
 	public void Start() {
-		miniCardObj = Instantiate(GameObject.Find ("PlantMiniCardView"));
-		miniCardObj.transform.parent = transform;
+		purchased = false;
+		miniCardObj = Instantiate(GameObject.Find ("PlantMiniView"));
+		if (miniCardObj == null)
+			print ("Can't Find PlantMiniView object");
+		else
+			miniCardObj.transform.parent = transform;
 	}
 
 	public bool CanStockMoreMaterial() {
@@ -51,6 +58,11 @@ public class PowerPlant : MonoBehaviour, IComparable
 		get {
 			return miniCardObj;
 		}
+	}
+
+	public void Hide() {
+		transform.position = new Vector3(100,100,0);
+		miniCardObj.transform.position = new Vector3(100,100,0);
 	}
 
 	public bool AddMaterial() {
@@ -76,20 +88,19 @@ public class PowerPlant : MonoBehaviour, IComparable
 	public void OnMouseOver() {
 		if (GameState.instance.CurrentState == GameState.State.BuyPlants) {
 			if (Input.GetMouseButtonDown (0)) {
-				PowerPlantShop shop = GameObject.FindObjectOfType<PowerPlantShop>();
-				shop.selectedPlant = this;
-				shop.currentBid = baseCost;
+				GameState.instance.PowerplantShop.SetSelectedPlant(this);
 			}
 		}
 	}
 
 	public void Update() {
-		if (miniViewData == null) {
-			miniViewData = miniCardObj.GetComponent<PlantCardMiniView> ();
-			if(miniViewData != null)
-				miniViewData.Setup(this);
+		if (miniCardObj != null) {
+			if (miniViewData == null) {
+				miniViewData = miniCardObj.GetComponent<PlantCardMiniView> ();
+				if(miniViewData != null)
+					miniViewData.Setup(this);
+			}
 		}
-
 	}
 	public void OnGUI() {
 		Vector3 screenPoint = Camera.main.WorldToScreenPoint(transform.position);
