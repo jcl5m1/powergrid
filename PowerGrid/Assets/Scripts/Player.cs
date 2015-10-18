@@ -91,7 +91,7 @@ public class Player  : MonoBehaviour, IComparable
 	}
 
 	public void CommitPurchases() {
-		print ("commiting purchases");
+//		print ("commiting purchases");
 		foreach (CityPurchase cp in cityPurchases)
 			cp.Commit ();
 	}
