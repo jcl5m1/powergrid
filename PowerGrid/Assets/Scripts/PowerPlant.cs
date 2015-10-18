@@ -19,6 +19,8 @@ public class PowerPlant : MonoBehaviour, IComparable
 	[HideInInspector]
 	public int materialStock;
 
+	private GameObject miniCardObj = null;
+	private PlantCardMiniView miniViewData = null;
 	public Type type;
 	
 	public enum Type
@@ -35,17 +37,20 @@ public class PowerPlant : MonoBehaviour, IComparable
 	public int CompareTo( object pp) {
 		return baseCost.CompareTo (((PowerPlant)pp).baseCost);
 	}
-	public PowerPlant (int cost, int power, int materialCount, Type plantType)
-	{
-		baseCost = cost;
-		this.power = power;
-		materialCost = materialCount;
-		type = plantType;
-		materialStock = 0;
+	
+	public void Start() {
+		miniCardObj = Instantiate(GameObject.Find ("PlantMiniCardView"));
+		miniCardObj.transform.parent = transform;
 	}
 
 	public bool CanStockMoreMaterial() {
 		return (materialStock < 2 * materialCost);
+	}
+
+	public GameObject MiniCardObj {
+		get {
+			return miniCardObj;
+		}
 	}
 
 	public bool AddMaterial() {
@@ -68,6 +73,28 @@ public class PowerPlant : MonoBehaviour, IComparable
 		string info = "cost:" + baseCost + " power:" + power + " materialCost:" + materialCost + " type:" + type;
 		return info;
 	}
+	public void OnMouseOver() {
+		if (GameState.instance.CurrentState == GameState.State.BuyPlants) {
+			if (Input.GetMouseButtonDown (0)) {
+				PowerPlantShop shop = GameObject.FindObjectOfType<PowerPlantShop>();
+				shop.selectedPlant = this;
+				shop.currentBid = baseCost;
+			}
+		}
+	}
 
+	public void Update() {
+		if (miniViewData == null) {
+			miniViewData = miniCardObj.GetComponent<PlantCardMiniView> ();
+			if(miniViewData != null)
+				miniViewData.Setup(this);
+		}
+
+	}
+	public void OnGUI() {
+		Vector3 screenPoint = Camera.main.WorldToScreenPoint(transform.position);
+		screenPoint.y = Screen.height - screenPoint.y;
+		GUI.Label(new Rect(screenPoint.x-25, screenPoint.y-25,200,100),gameObject.name + "\nCost:" +materialCost +"\nPwr:"+power);
+	}
 }
 
