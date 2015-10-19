@@ -17,9 +17,13 @@ public class Player  : MonoBehaviour, IComparable
 	private int starterCash = 50;
 	[HideInInspector]
 	public ArrayList powerPlants = new ArrayList();
+
 	[HideInInspector]
 	public ArrayList cities = new ArrayList();
 	public ArrayList cityPurchases = new ArrayList();
+
+	private GameObject playerMiniViewObj = null;
+	private PlayerMiniView playerMiniViewData = null;
 
 	public Color color;
 
@@ -40,8 +44,14 @@ public class Player  : MonoBehaviour, IComparable
 	void Start () {
 		starterCash = cash;
 		scorePiece.GetComponent<Renderer> ().material.color = color;
+
 		Reset ();
+
+		playerMiniViewObj = Instantiate (GameObject.Find ("PlayerMiniView"));
+		playerMiniViewObj.transform.parent = transform;
+		playerMiniViewObj.GetComponent<Renderer> ().material.color = color;
 	}
+
 	public int GetOrderScore() {
 		int maxPowerPlantValue = 0;
 		foreach (PowerPlant pp in powerPlants) {
@@ -54,6 +64,12 @@ public class Player  : MonoBehaviour, IComparable
 
 	public int CompareTo( object p) {
 		return GetOrderScore().CompareTo (((Player)p).GetOrderScore());
+	}
+
+	public GameObject PlayerMiniViewObj {
+		get {
+			return playerMiniViewObj;
+		}
 	}
 
 	public int GetCityCount() {
@@ -70,8 +86,24 @@ public class Player  : MonoBehaviour, IComparable
 		cityPurchases.Clear ();
 	}
 
+	public int PowerPotential() {
+		int power = 0;
+		foreach (PowerPlant pp in powerPlants) {
+			power += pp.power;
+		}
+		return power;
+	}
+
 	public void Update() {
-		scoreText.text = cities.Count.ToString();
+
+
+		if (playerMiniViewData == null) {
+			playerMiniViewData = playerMiniViewObj.GetComponent<PlayerMiniView>();
+			if(playerMiniViewData != null)
+				playerMiniViewData.player = this;
+		}
+
+		scoreText.text = PowerPotential() + "/" + cities.Count.ToString();
 		cashText.text = "$" + cash.ToString();
 
 		foreach (CityPurchase purchase in cityPurchases) {
@@ -87,11 +119,10 @@ public class Player  : MonoBehaviour, IComparable
 //			purchase.obj.transform.position = pos;
 //			purchase.obj.transform.rotation = rot;
 		}
-
 	}
 
 	public void CommitPurchases() {
-//		print ("commiting purchases");
+		print ("commiting purchases");
 		foreach (CityPurchase cp in cityPurchases)
 			cp.Commit ();
 	}
@@ -103,6 +134,14 @@ public class Player  : MonoBehaviour, IComparable
 			info += pp.ToString ();
 		info += "] " + cities.Count;
 		return info;
+	}
+
+	public void OnMouseOver() {
+		if (GameState.instance.CurrentState == GameState.State.BuyPlants) {
+			if (Input.GetMouseButtonDown (0)) {
+				GameState.instance.PowerplantShop.BuyCurrentCity(this);
+			}
+		}
 	}
 }
 

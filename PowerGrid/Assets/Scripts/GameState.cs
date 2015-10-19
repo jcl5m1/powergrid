@@ -16,21 +16,19 @@ public class GameState : MonoBehaviour {
 	private State currentState = State.ComputeTurn;
 	private ArrayList players = null;
 	private ArrayList playerOrderPieces = null;
-	private ArrayList drawDeckPowerPlants = null;
-	private ArrayList inMarketPowerPlants = null;
-		
-	private int marketCount = 8;
-	private int biddableCount = 4;
+//	private ArrayList drawDeckPowerPlants = null;
+//	private ArrayList inMarketPowerPlants = null;
+//		
+//	private int marketCount = 8;
+//	private int biddableCount = 4;
 	private int gameRound = 1;
 
 	private CityGraph graph;
 
 	public TextMesh stateText;
 
-	private int maxPowerPlants = 3;
 	private int gameEndCityCount = 17;
 	private int step2CityCount = 7;
-	private int randomlyRemovedCards = 4;
 	private int numberOfRegions = 3;
 	private int[] cityCountPayoutTable;
 
@@ -40,12 +38,13 @@ public class GameState : MonoBehaviour {
 	private int playerTurn = 0;
 	
 	private PowerPlantMaterialStore materialStore;
-	
+	private PowerPlantShop powerplantShop;
+
 	public static GameState instance = null;
 	private GameObject cityPopupText;
 
 	public GameObject materialShopPopup;
-	public GameObject powerplantShopPopup;
+//	public GameObject powerplantShopPopup;
 
 	public TextMesh coalShopText;
 	public TextMesh oilShopText;
@@ -55,6 +54,12 @@ public class GameState : MonoBehaviour {
 	public Player CurrentPlayer() {
 		return (Player)players [playerTurn];
 	}
+
+	public ArrayList Players {
+		get {
+			return players;
+		}
+	}
 	
 	// Use this for initialization
 	void Start () {
@@ -63,6 +68,8 @@ public class GameState : MonoBehaviour {
 		print ("Initialize game");
 
 		graph = GetComponent<CityGraph> ();
+
+		powerplantShop = GameObject.FindObjectOfType<PowerPlantShop> ();
 
 		//setup players
 		players = new ArrayList();
@@ -88,22 +95,31 @@ public class GameState : MonoBehaviour {
 		materialStore = new PowerPlantMaterialStore ();
 
 		InitializePayoutTable ();
-		InitializePowerPlants ();
-		DealCards ();
+//		InitializePowerPlants ();
+//		DealCards ();
+//
+//		ShufflePowerPlantCards ();
+	}
 
-		ShufflePowerPlantCards ();
+	public PowerPlantShop PowerplantShop {
+		get {
+			return powerplantShop;
+		}
 	}
 
 	void Reset() {
 		foreach (Player p in players) {
 			p.Reset ();
 		}
-		inMarketPowerPlants.Clear ();
-		drawDeckPowerPlants.Clear ();
-		InitializePowerPlants ();
-		DealCards ();
 
-		ShufflePowerPlantCards ();
+		powerplantShop.Reset ();
+
+//		inMarketPowerPlants.Clear ();
+//		drawDeckPowerPlants.Clear ();
+//		InitializePowerPlants ();
+//		DealCards ();
+//
+//		ShufflePowerPlantCards ();
 	}
 
 	void InitializePayoutTable() {
@@ -135,74 +151,6 @@ public class GameState : MonoBehaviour {
 		get {
 			return currentState;
 		}
-	}
-
-
-	void MovePowerPlantCard(int fromPosition, int toPosition) {
-
-		if (toPosition == fromPosition)
-			return;
-		drawDeckPowerPlants.Insert (toPosition, drawDeckPowerPlants [fromPosition]);
-
-		if (toPosition < fromPosition) 
-			drawDeckPowerPlants.RemoveAt (fromPosition+1);
-		else
-			drawDeckPowerPlants.RemoveAt (fromPosition);
-	}
-
-	int FindIndexOfPowerPlantCard(int cost) {
-		for (int i = 0; i < drawDeckPowerPlants.Count; i++) {
-			if( ((PowerPlant)drawDeckPowerPlants[i]).baseCost == cost)
-				return i;			
-		}
-		return -1;
-	}
-
-	void ShufflePowerPlantCards() {
-		ArrayList shuffled = new ArrayList();
-
-		int randomIndex = 0;
-		while (drawDeckPowerPlants.Count > 0)
-		{
-			randomIndex = Random.Range(0, drawDeckPowerPlants.Count); //Choose a random object in the list
-			shuffled.Add(drawDeckPowerPlants[randomIndex]); //add it to the new, random list
-			drawDeckPowerPlants.RemoveAt(randomIndex); //remove to avoid duplicates
-		}
-
-		drawDeckPowerPlants = shuffled;
-
-		//put step 3 on bottom
-		int index = FindIndexOfPowerPlantCard (100);
-		if (index != -1)
-			MovePowerPlantCard (index, drawDeckPowerPlants.Count);
-
-		//put 13 on top
-		index = FindIndexOfPowerPlantCard (13);
-		if (index != -1)
-			MovePowerPlantCard (index, 0);
-
-	}
-	
-	void InitializePowerPlants() {
-		drawDeckPowerPlants = new ArrayList ();
-		inMarketPowerPlants = new ArrayList ();
-
-		//create power plant cards
-		PowerPlant[] plants = FindObjectsOfType(typeof(PowerPlant)) as PowerPlant[];
-		for (int i = 0; i < plants.Length; i++) {
-			drawDeckPowerPlants.Add (plants [i]);
-		}
-
-		drawDeckPowerPlants.Sort ();
-	}
-
-	void DealCards() {
-		while (inMarketPowerPlants.Count < marketCount) {
-			inMarketPowerPlants.Add(drawDeckPowerPlants[0]);
-			drawDeckPowerPlants.RemoveAt(0);
-		}	
-
-		inMarketPowerPlants.Sort ();
 	}
 
 	void DoBureaucracy() {
@@ -246,8 +194,6 @@ public class GameState : MonoBehaviour {
 			cityPopupText.transform.position = new Vector3(100,100,100);//offscreen
 		if (currentState != State.BuyMaterials)
 			materialShopPopup.transform.localPosition = new Vector3 (-2.0f,0.3f, -0.05f);
-		if (currentState != State.BuyPlants)
-			powerplantShopPopup.transform.localPosition = new Vector3 (-2.0f,0.3f, -0.05f);
 
 //			cityPopupText.transform.position = new Vector3(100,100,100);//offscreen
 
@@ -263,6 +209,8 @@ public class GameState : MonoBehaviour {
 			}
 
 			currentState = State.BuyPlants;
+			powerplantShop.Show(true);
+
 			playerTurn = 0;
 			break;
 		case  State.BuyPlants:
@@ -271,18 +219,20 @@ public class GameState : MonoBehaviour {
 			//adjust price
 			//click on player that buys
 			//redraw
-			powerplantShopPopup.transform.localPosition = new Vector3 (-0.4f,0.3f, -0.05f);
+			//move plant shop into place
+
 
 			if (advanceTurn) {
 				playerTurn++;
 				if(playerTurn == players.Count) {
 					advanceState = true;
 					playerTurn = players.Count-1;
+					powerplantShop.Show(false);
 				}
 			}
 
 			if(advanceState) {
-				DealCards();
+				powerplantShop.DealCards();
 				currentState = State.BuyMaterials;
 //				print (currentState);
 			}
@@ -355,17 +305,6 @@ public class GameState : MonoBehaviour {
 			playerOrderPiece.transform.rotation = rot;
 		}
 
-		foreach (PowerPlant pp in drawDeckPowerPlants) {
-			pp.gameObject.GetComponent<Renderer>().material.color = Color.gray;
-		}
-		index = 0;
-		foreach (PowerPlant pp in inMarketPowerPlants) {
-			if(index < biddableCount)
-				pp.gameObject.GetComponent<Renderer>().material.color = Color.green;
-			else
-				pp.gameObject.GetComponent<Renderer>().material.color = Color.blue;
-			index++;
-		}
 
 	}
 	public void RecomputeTravelCosts() {
@@ -383,41 +322,41 @@ public class GameState : MonoBehaviour {
 			"\nActivity: " + currentState;
 
 		int yPos = 10;
-		GUI.Label (new Rect (10, yPos, 500, 20), "Round: " + gameRound + 
-            " Step: " + gameStep + 
-			" State: " + currentState + 
-			" PlayerTurn: " + ((Player)players [playerTurn]).gameObject.name);
-		yPos += 20;
-		GUI.Label(new Rect(10,yPos,500,20),players[0].ToString());
-		yPos += 20;
-		GUI.Label(new Rect(10,yPos,500,20),players[1].ToString());
-		yPos += 20;
-		GUI.Label(new Rect(10,yPos,500,20),players[2].ToString());
-		yPos += 20;
-		GUI.Label(new Rect(10,yPos,500,20),players[3].ToString());
-		yPos += 20;
+//		GUI.Label (new Rect (10, yPos, 500, 20), "Round: " + gameRound + 
+//            " Step: " + gameStep + 
+//			" State: " + currentState + 
+//			" PlayerTurn: " + ((Player)players [playerTurn]).gameObject.name);
+//		yPos += 20;
+//		GUI.Label(new Rect(10,yPos,500,20),players[0].ToString());
+//		yPos += 20;
+//		GUI.Label(new Rect(10,yPos,500,20),players[1].ToString());
+//		yPos += 20;
+//		GUI.Label(new Rect(10,yPos,500,20),players[2].ToString());
+//		yPos += 20;
+//		GUI.Label(new Rect(10,yPos,500,20),players[3].ToString());
+//		yPos += 20;
 
-		GUI.Label(new Rect(10,yPos,500,20),"Material Store: " +
-		          " Coal: [" + materialStore.QueryInventory(PowerPlantMaterialStore.Type.Coal) + "," + materialStore.QueryCost(PowerPlantMaterialStore.Type.Coal)+"]" +
-		          " Oil: [" + materialStore.QueryInventory(PowerPlantMaterialStore.Type.Oil) + "," + materialStore.QueryCost(PowerPlantMaterialStore.Type.Oil)+"]" +
-		          " Garbage: [" + materialStore.QueryInventory(PowerPlantMaterialStore.Type.Garbage) + "," + materialStore.QueryCost(PowerPlantMaterialStore.Type.Garbage)+"]" +
-		          " Uranium: [" + materialStore.QueryInventory(PowerPlantMaterialStore.Type.Uranium) + "," + materialStore.QueryCost(PowerPlantMaterialStore.Type.Uranium)+"]");
+//		GUI.Label(new Rect(10,yPos,500,20),"Material Store: " +
+//		          " Coal: [" + materialStore.QueryInventory(PowerPlantMaterialStore.Type.Coal) + "," + materialStore.QueryCost(PowerPlantMaterialStore.Type.Coal)+"]" +
+//		          " Oil: [" + materialStore.QueryInventory(PowerPlantMaterialStore.Type.Oil) + "," + materialStore.QueryCost(PowerPlantMaterialStore.Type.Oil)+"]" +
+//		          " Garbage: [" + materialStore.QueryInventory(PowerPlantMaterialStore.Type.Garbage) + "," + materialStore.QueryCost(PowerPlantMaterialStore.Type.Garbage)+"]" +
+//		          " Uranium: [" + materialStore.QueryInventory(PowerPlantMaterialStore.Type.Uranium) + "," + materialStore.QueryCost(PowerPlantMaterialStore.Type.Uranium)+"]");
+//
+//		coalShopText.text = "Coal:\n" + materialStore.QueryInventory(PowerPlantMaterialStore.Type.Coal)+ " @ $" + materialStore.QueryCost(PowerPlantMaterialStore.Type.Coal); 
+//		oilShopText.text = "Oil:\n" + materialStore.QueryInventory(PowerPlantMaterialStore.Type.Oil)+ " @ $" + materialStore.QueryCost(PowerPlantMaterialStore.Type.Oil); 
+//		garbageShopText.text = "Garbage:\n" + materialStore.QueryInventory(PowerPlantMaterialStore.Type.Garbage)+ " @ $"+ materialStore.QueryCost(PowerPlantMaterialStore.Type.Garbage); 
+//		uraniumShopText.text = "Uranium:\n" + materialStore.QueryInventory(PowerPlantMaterialStore.Type.Uranium)+ " @ $"+ materialStore.QueryCost(PowerPlantMaterialStore.Type.Uranium); 
+//		yPos += 20;
 
-		coalShopText.text = "Coal:\n" + materialStore.QueryInventory(PowerPlantMaterialStore.Type.Coal)+ " @ $" + materialStore.QueryCost(PowerPlantMaterialStore.Type.Coal); 
-		oilShopText.text = "Oil:\n" + materialStore.QueryInventory(PowerPlantMaterialStore.Type.Oil)+ " @ $" + materialStore.QueryCost(PowerPlantMaterialStore.Type.Oil); 
-		garbageShopText.text = "Garbage:\n" + materialStore.QueryInventory(PowerPlantMaterialStore.Type.Garbage)+ " @ $"+ materialStore.QueryCost(PowerPlantMaterialStore.Type.Garbage); 
-		uraniumShopText.text = "Uranium:\n" + materialStore.QueryInventory(PowerPlantMaterialStore.Type.Uranium)+ " @ $"+ materialStore.QueryCost(PowerPlantMaterialStore.Type.Uranium); 
-		yPos += 20;
-
-		int count = 0;
-		foreach (PowerPlant pp in inMarketPowerPlants) {
-			if(count < biddableCount)
-				GUI.Label (new Rect (10, yPos, 500, 20), "Biddable: " + pp.ToString ());
-			else
-				GUI.Label (new Rect (10, yPos, 500, 20), "On Deck: " + pp.ToString ());
-			count++;
-			yPos += 20;
-		}
+//		int count = 0;
+//		foreach (PowerPlant pp in powerplantShop.inMarketPowerPlants) {
+//			if(count < powerplantShop.biddableCount)
+//				GUI.Label (new Rect (10, yPos, 500, 20), "Biddable: " + pp.ToString ());
+//			else
+//				GUI.Label (new Rect (10, yPos, 500, 20), "On Deck: " + pp.ToString ());
+//			count++;
+//			yPos += 20;
+//		}
 
 	}
 }
