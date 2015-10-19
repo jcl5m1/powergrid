@@ -94,8 +94,16 @@ public class Player  : MonoBehaviour, IComparable
 		return power;
 	}
 
-	public void Update() {
+	public int PowerAvailable() {
+		int power = 0;
+		foreach (PowerPlant pp in powerPlants) {
+			power += pp.PowerAvailable();
+		}
+		return power;
+	}
 
+
+	public void Update() {
 
 		if (playerMiniViewData == null) {
 			playerMiniViewData = playerMiniViewObj.GetComponent<PlayerMiniView>();
@@ -103,7 +111,7 @@ public class Player  : MonoBehaviour, IComparable
 				playerMiniViewData.player = this;
 		}
 
-		scoreText.text = PowerPotential() + "/" + cities.Count.ToString();
+		scoreText.text = PowerAvailable() + "/" + cities.Count.ToString();
 		cashText.text = "$" + cash.ToString();
 
 		foreach (CityPurchase purchase in cityPurchases) {
@@ -121,11 +129,11 @@ public class Player  : MonoBehaviour, IComparable
 		}
 	}
 
-	public void CommitPurchases() {
-		print ("commiting purchases");
-		foreach (CityPurchase cp in cityPurchases)
-			cp.Commit ();
-	}
+//	public void CommitPurchases() {
+//		print ("commiting purchases");
+//		foreach (CityPurchase cp in cityPurchases)
+//			cp.Commit ();
+//	}
 
 	public override string ToString() {
 		string info = name + " cash:" + cash + " [";

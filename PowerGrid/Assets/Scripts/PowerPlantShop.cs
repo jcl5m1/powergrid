@@ -99,12 +99,13 @@ public class PowerPlantShop : MonoBehaviour {
 	
 	public void DealCards() {
 		while (inMarketPowerPlants.Count < marketCount) {
+			if(drawDeckPowerPlants.Count == 0)
+				break;
 			inMarketPowerPlants.Add(drawDeckPowerPlants[0]);
 			drawDeckPowerPlants.RemoveAt(0);
 		}	
 		
 		inMarketPowerPlants.Sort ();
-
 		LayoutPowerPlantCards ();
 	}
 
@@ -120,10 +121,10 @@ public class PowerPlantShop : MonoBehaviour {
 			pp.gameObject.transform.parent = transform;
 			if(i < biddableCount) {
 				pp.gameObject.transform.localPosition = new Vector3(xPos + (i%biddableCount)*xStep, yPos ,-0.01f); 
-				pp.gameObject.GetComponent<Renderer>().material.color = Color.green;
+				pp.gameObject.GetComponent<Renderer>().material.color = Color.blue;
 			} else {
 				pp.gameObject.transform.localPosition = new Vector3(xPos + (i%biddableCount)*xStep, yPos + yStep,-0.01f); 
-				pp.gameObject.GetComponent<Renderer>().material.color = Color.blue;
+				pp.gameObject.GetComponent<Renderer>().material.color = Color.gray;
 			}
 		}
 	}
@@ -140,14 +141,12 @@ public class PowerPlantShop : MonoBehaviour {
 			return;
 		}
 
-		foreach (Player p in GameState.instance.Players) {
-			if(p.powerPlants.Contains(selectedPlant)) {
-				p.powerPlants.Remove(selectedPlant);
-				selectedPlant.Hide();
-				break;
-			}
+		if(selectedPlant.owner != null) {
+			selectedPlant.owner.powerPlants.Remove(selectedPlant);
+			selectedPlant.owner = null;
+			selectedPlant.Hide();
+			LayoutPlayerMiniViews ();
 		}
-		LayoutPlayerMiniViews ();
 	}
 
 	public void LayoutPlayerMiniViews() {
@@ -180,6 +179,7 @@ public class PowerPlantShop : MonoBehaviour {
 			return;
 
 		p.powerPlants.Add(selectedPlant);
+		selectedPlant.owner = p;
 		p.cash -= currentBid;
 		selectedPlant.purchased = true;
 		inMarketPowerPlants.Remove(selectedPlant);
@@ -188,6 +188,8 @@ public class PowerPlantShop : MonoBehaviour {
 		DealCards();
 		LayoutPowerPlantCards();
 		LayoutPlayerMiniViews ();
+
+		GameState.instance.AdvanceTurn ();
 
 	}
 

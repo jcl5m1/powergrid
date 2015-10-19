@@ -21,6 +21,8 @@ public class PowerPlant : MonoBehaviour, IComparable
 
 	[HideInInspector]
 	public bool purchased;
+	[HideInInspector]
+	public Player owner = null;
 
 	private GameObject miniCardObj = null;
 	private PlantCardMiniView miniViewData = null;
@@ -73,10 +75,16 @@ public class PowerPlant : MonoBehaviour, IComparable
 		return false;
 	}
 
+	public int PowerAvailable() {
+		if(materialCost > materialStock)
+			return 0;
+		return power;
+	}
+
 	public int RunPlant() {
 		if(materialCost > materialStock)
 			return 0;
-
+//		print ("using " + materialCost +" of stock :"+ materialStock + " for pow:" + power);
 		materialStock -= materialCost;
 		return power;
 	}
@@ -85,6 +93,7 @@ public class PowerPlant : MonoBehaviour, IComparable
 		string info = "cost:" + baseCost + " power:" + power + " materialCost:" + materialCost + " type:" + type;
 		return info;
 	}
+
 	public void OnMouseOver() {
 		if (GameState.instance.CurrentState == GameState.State.BuyPlants) {
 			if (Input.GetMouseButtonDown (0)) {

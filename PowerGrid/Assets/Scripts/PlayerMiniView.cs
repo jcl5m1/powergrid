@@ -22,9 +22,6 @@ public class PlayerMiniView : MonoBehaviour {
 
 	public void Layout() {
 		if (player != null) {
-			nameText.text = player.gameObject.name;
-			cityText.text = "C:" + player.PowerPotential () + "/" + player.cities.Count;
-			cashText.text = "$" + player.cash.ToString ();
 			for(int i = plantMiniViews.Count; i < player.powerPlants.Count; i++) {
 				GameObject obj = ((PowerPlant)player.powerPlants[i]).MiniCardObj;
 				plantMiniViews.Add (obj);
@@ -41,6 +38,12 @@ public class PlayerMiniView : MonoBehaviour {
 
 	// Update is called once per frame
 	void Update () {
+		if (player != null) {
+			nameText.text = player.gameObject.name;
+			cityText.text = "P:" + player.PowerAvailable() + "/" + player.PowerPotential() +" C:" + player.cities.Count;
+			//cashText.text = "$" + player.cash.ToString ();
+			cashText.text = "";//$" + player.cash.ToString ();
+		}
 	}
 
 	public void OnMouseOver() {

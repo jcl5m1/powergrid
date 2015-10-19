@@ -37,7 +37,7 @@ public class GameState : MonoBehaviour {
 
 	private int playerTurn = 0;
 	
-	private PowerPlantMaterialStore materialStore;
+	private MaterialShop materialShop;
 	private PowerPlantShop powerplantShop;
 
 	public static GameState instance = null;
@@ -51,6 +51,9 @@ public class GameState : MonoBehaviour {
 	public TextMesh garbageShopText;
 	public TextMesh uraniumShopText;
 	
+	private bool advanceState = false;
+	private bool advanceTurn = false;
+		
 	public Player CurrentPlayer() {
 		return (Player)players [playerTurn];
 	}
@@ -59,6 +62,10 @@ public class GameState : MonoBehaviour {
 		get {
 			return players;
 		}
+	}
+
+	public void AdvanceTurn() {
+		advanceTurn = true;
 	}
 	
 	// Use this for initialization
@@ -70,6 +77,7 @@ public class GameState : MonoBehaviour {
 		graph = GetComponent<CityGraph> ();
 
 		powerplantShop = GameObject.FindObjectOfType<PowerPlantShop> ();
+		materialShop = GameObject.FindObjectOfType<MaterialShop> ();
 
 		//setup players
 		players = new ArrayList();
@@ -91,8 +99,9 @@ public class GameState : MonoBehaviour {
 		players.Sort ();
 		players.Reverse ();
 
-		//create material store
-		materialStore = new PowerPlantMaterialStore ();
+
+		bool advanceState = false;
+		bool advanceTurn = false;
 
 		InitializePayoutTable ();
 //		InitializePowerPlants ();
@@ -104,6 +113,12 @@ public class GameState : MonoBehaviour {
 	public PowerPlantShop PowerplantShop {
 		get {
 			return powerplantShop;
+		}
+	}
+
+	public MaterialShop MaterialShop {
+		get {
+			return materialShop;
 		}
 	}
 
@@ -157,19 +172,34 @@ public class GameState : MonoBehaviour {
 		foreach (Player p in players) {
 			int powerCount = 0;
 
-			foreach(PowerPlant pp in p.powerPlants)
-				powerCount += pp.RunPlant();
-			if(powerCount > 20)
-				powerCount = 20;
+			//hmmm...should let user select which plants to run
+
+			//first get green plants
+			foreach(PowerPlant pp in p.powerPlants) {
+				if(pp.type == PowerPlant.Type.Clean){
+//					print ("clean pow: " + powerCount + " + " + pp);
+					powerCount += pp.RunPlant();
+				}
+			}
+			foreach(PowerPlant pp in p.powerPlants) {
+				if(pp.type != PowerPlant.Type.Clean){
+//					print ("norm pow: " + powerCount + " + " + pp);
+					powerCount += pp.RunPlant();
+					if(powerCount > p.cities.Count)
+						break;
+				}
+			}
+
+			if(powerCount > p.cities.Count)
+				powerCount = p.cities.Count;
+
+			print (p.gameObject.name + " powered " + powerCount + "/" + p.cities.Count + " cities for "  + cityCountPayoutTable[powerCount]);
 			p.cash += cityCountPayoutTable[powerCount];
-			p.cash += Random.Range(0,20);
 		}
 	}
 
 	// Update is called once per frame
 	void Update () {	
-		bool advanceState = false;
-		bool advanceTurn = false;
 
 //		graph.DebugDraw ();
 
@@ -192,10 +222,6 @@ public class GameState : MonoBehaviour {
 
 		if(currentState != State.BuildCities)
 			cityPopupText.transform.position = new Vector3(100,100,100);//offscreen
-		if (currentState != State.BuyMaterials)
-			materialShopPopup.transform.localPosition = new Vector3 (-2.0f,0.3f, -0.05f);
-
-//			cityPopupText.transform.position = new Vector3(100,100,100);//offscreen
 
 		switch (currentState) {
 		case  State.ComputeTurn:
@@ -223,17 +249,21 @@ public class GameState : MonoBehaviour {
 
 
 			if (advanceTurn) {
+				advanceTurn = false;
 				playerTurn++;
 				if(playerTurn == players.Count) {
 					advanceState = true;
 					playerTurn = players.Count-1;
-					powerplantShop.Show(false);
 				}
 			}
 
 			if(advanceState) {
+				advanceState = false;
 				powerplantShop.DealCards();
 				currentState = State.BuyMaterials;
+				powerplantShop.Show(false);
+				materialShop.Show (true);
+
 //				print (currentState);
 			}
 		break;
@@ -242,9 +272,9 @@ public class GameState : MonoBehaviour {
 			//show market
 			//allow buying into each plant by clicking
 
-			materialShopPopup.transform.localPosition = new Vector3 (-0.4f,0.3f, -0.05f);
-
 			if (advanceTurn) {
+				advanceTurn = false;
+
 				playerTurn--;
 				if(playerTurn == -1) {
 					advanceState = true;
@@ -253,8 +283,11 @@ public class GameState : MonoBehaviour {
 			}
 
 			if(advanceState) {
+				advanceState = false;
+
 				currentState = State.BuildCities;
 				RecomputeTravelCosts();
+				materialShop.Show (false);
 
 //				print (currentState);
 			}
@@ -263,7 +296,9 @@ public class GameState : MonoBehaviour {
 			//hovering over city to shows cost (compute cost by searching over graph)
 
 			if (advanceTurn) {
-				CommitCityPurchases();
+//				CommitCityPurchases();
+				advanceTurn = false;
+
 				playerTurn--;
 
 				if(playerTurn == -1) {
@@ -276,14 +311,17 @@ public class GameState : MonoBehaviour {
 
 			}
 			if(advanceState) {
+				advanceState = false;
+
 				currentState = State.Bureaucracy;
-				CommitCityPurchases();
+//				CommitCityPurchases();
 			}
 		break;
 		case  State.Bureaucracy:
+			//show which power plants to run
 //			print (currentState);
 			DoBureaucracy();
-			materialStore.Restock(players.Count, gameStep);
+			materialShop.Restock(players.Count, gameStep);
 			currentState = State.ComputeTurn;
 			gameRound++;
 			break;
@@ -311,10 +349,10 @@ public class GameState : MonoBehaviour {
 		graph.RecomputeCityTravelCosts(gameStep, CurrentPlayer());
 	}
 
-	public void CommitCityPurchases() {
-		foreach (Player p in players)
-			p.CommitPurchases ();
-	}
+//	public void CommitCityPurchases() {
+//		foreach (Player p in players)
+//			p.CommitPurchases ();
+//	}
 
 	void OnGUI() {
 

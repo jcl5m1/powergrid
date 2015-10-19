@@ -26,9 +26,12 @@ public class PlantCardMiniView : MonoBehaviour {
 	}
 	
 	public void OnMouseOver() {
-		if (GameState.instance.CurrentState == GameState.State.BuyPlants) {
-			if (Input.GetMouseButtonDown (0)) {
+		if (Input.GetMouseButtonDown (0)) {
+			if (GameState.instance.CurrentState == GameState.State.BuyPlants) {
 				GameState.instance.PowerplantShop.SetSelectedPlant(plant);
+			}
+			if (GameState.instance.CurrentState == GameState.State.BuyMaterials) {
+				GameState.instance.MaterialShop.Buy(plant);
 			}
 		}
 	}
